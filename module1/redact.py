@@ -1,9 +1,11 @@
 import json
+import os
+import random
 import struct
 import base64
 import numpy as np
 import cv2
-import easyocr
+import torch
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
@@ -74,91 +76,147 @@ def lsb_extract(img):
 
 # -------------------------------------- Region extraction --------------------------------------
 
-def extract_text_from_mask(img, mask, reader):
+def extract_text_from_mask(mask):
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     regions = []
 
-    for contour in contours:
+    for i, contour in enumerate(contours):
         x, y, w, h = cv2.boundingRect(contour)
-
-        x1 = x
-        y1 = y
-        x2 = x + w
-        y2 = y + h
-
-        crop = img[y1:y2, x1:x2]
-        ocr_results = reader.readtext(crop)
-        text = " ".join(t for box, t, prob in ocr_results).strip()
-
-        if text:
-            regions.append({"box": (x1, y1, x2 - x1, y2 - y1), "text": text})
+        regions.append((i, x, y, w, h))
 
     return regions
 
 
-# -------------------------------------- Blurring --------------------------------------
+# -------------------------------------- Loading img as tensor --------------------------------------
 
-def blur_mask_regions(img, mask, strength = 51):
-    if strength % 2 == 0:
-        strength += 1
+def load_tensor(path, patch_size=224):
+    img = cv2.imread(path)  # BGR
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    blurred = cv2.GaussianBlur(img, (strength, strength), 0)
+    h, w, _ = img.shape
 
-    # blur only the mask
-    result = img.copy()
-    result[mask == 255] = blurred[mask == 255]
-    return result
+    if h < patch_size or w < patch_size:
+        img = cv2.resize(img, (patch_size, patch_size))
+        patch = img
+    else:
+        y = random.randint(0, h - patch_size)
+        x = random.randint(0, w - patch_size)
+        patch = img[y:y + patch_size, x:x + patch_size]
 
+    t = torch.from_numpy(patch).float().div(255).permute(2, 0, 1)
+    return t.unsqueeze(0)
+
+def crop_to_tensor(crop, patch_size=224):
+    img = cv2.resize(crop, (patch_size, patch_size), interpolation=cv2.INTER_AREA)
+
+    t = torch.from_numpy(img).float().div(255).permute(2, 0, 1)
+    return t.unsqueeze(0)
+
+def tensor_to_numpy(tensor):
+    t = tensor.squeeze(0).permute(1, 2, 0).cpu().numpy()
+    return (t * 255).clip(0, 255).astype(np.uint8)
+
+def save_img(img, path):
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    cv2.imwrite(path, img, [cv2.IMWRITE_TIFF_COMPRESSION, 1])
 
 # -------------------------------------- Pipeline --------------------------------------
+host_folder = "PRIS/host"
+secret_folder = "PRIS/secret"
+output_container = "PRIS/output/container"
+output_recovered = "PRIS/output/recovered"
 
-def redact_and_embed(img, mask, reader, key = None, blur_strength = 51):
+def redact_and_embed(img, mask, pris_model, device, aes_key = None):
     # Returns ( stego_img, key, summary)
 
-    if key is None:
-        key = get_random_bytes(32)
+    host_files = os.listdir(host_folder) # container images
 
-    regions = extract_text_from_mask(img, mask, reader)
+    regions = extract_text_from_mask(mask)
+    redacted = img.copy()
 
-    if not regions:
-        print("Nothing to embed - no text found")
-        blurred = blur_mask_regions(img, mask, blur_strength)
-        return blurred, key, "No sensitive text found."
+    if aes_key is None:
+        aes_key = get_random_bytes(32)
 
+    region_meta = []
 
-    extracted = {
-        "regions": [
-            {"box": r["box"], "text": r["text"]}
-            for r in regions
-        ]
-    }
-    plaintext = json.dumps(extracted, ensure_ascii=False)
-    print(f"Extracted text: {plaintext}")
+    with torch.no_grad():
+        for (i, x, y, w, h) in regions:
+            crop = img[y:y+h, x:x+w]
 
-    # Encrypt
-    ciphertext = encrypt(plaintext, key)
+            # pick random host img
+            host_file = random.choice(host_files)
+            host = load_tensor(os.path.join(host_folder, host_file)).to(device)
+            secret = crop_to_tensor(crop).to(device)
+
+            # embed secret into host
+            container = pris_model.embed(host, secret)
+            container_np = tensor_to_numpy(container)
+            container_name = f'h{os.path.splitext(host_file)[0]}_r{i}_x{x}_y{y}_w{w}_h{h}.tiff'
+            save_img(container_np, os.path.join(output_container, container_name))
+
+            # paste container over sensitive region
+            container_resized = cv2.resize(container_np, (w, h), interpolation=cv2.INTER_LANCZOS4)
+            redacted[y:y+h, x:x+w] = container_resized
+
+            region_meta.append({
+                "region_idx": i,
+                "x": x, "y": y, "w": w, "h": h,
+                "host_file": host_file
+            })
+
+            print(f'Embeded region {i} using host {host_file}')
+
+    # build encryption text
+    plaintext = json.dumps({
+        "original_size": [img.shape[1], img.shape[0]],
+        "regions": region_meta
+    }, ensure_ascii=False)
+
+    # encrypt metadata
+    ciphertext = encrypt(plaintext, aes_key)
     print(f"Ciphertext length: {len(ciphertext)} bytes")
 
-    # Blur
-    blurred = blur_mask_regions(img, mask, blur_strength)
-
-    # Embed
+    # embed ciphertext
     try:
-        stego = lsb_embed(blurred, ciphertext)
+        stego = lsb_embed(redacted, ciphertext)
     except ValueError as e:
-        print(f"WARNING: {e}")
-        return blurred, key, f"Blur applied but stego failed: {e}"
+        print(f"WARNING: LSB embeding failed {e}")
+        stego = redacted
 
     summary = (
         f"Redacted {len(regions)} regions.\n"
         f"Embedded {len(ciphertext)} bytes of encrypted data.\n"
-        f"Key (base64): {base64.b64encode(key).decode()}"
+        f"Key (base64): {base64.b64encode(aes_key).decode()}"
     )
     print(summary)
-    return stego, key, summary
+    return stego, aes_key, summary
 
 
-def recover_from_image(img, key):
+def recover_from_image(img, key, pris_model, device):
     ciphertext = lsb_extract(img)
     plaintext = decrypt(ciphertext, key)
-    return json.loads(plaintext)
+    metadata = json.loads(plaintext)
+
+    W, H = metadata["original_size"]
+    regions = metadata["regions"]
+
+    recovered = img.copy()
+
+    with torch.no_grad():
+        for r in regions:
+            x, y, w, h = r["x"], r["y"], r["w"], r["h"]
+
+            container_patch = img[y:y+h, x:x+w]
+            container = crop_to_tensor(container_patch).to(device)
+
+            secret = pris_model.extract(container)
+            secret_np = tensor_to_numpy(secret)
+
+            secret_name = f'rec_r{r['region_idx']}_x{x}_y{y}_w{w}_h{h}.tiff'
+            save_img(secret_np, os.path.join(output_recovered, secret_name))
+
+            secret_resized = cv2.resize(secret_np, (w, h), interpolation=cv2.INTER_LANCZOS4)
+            recovered[y:y+h, x:x+w] = secret_resized
+
+
+    return recovered
