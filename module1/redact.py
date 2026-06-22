@@ -154,14 +154,15 @@ def redact_and_embed(img, mask, pris_model, device, aes_key = None):
             container_name = f'h{os.path.splitext(host_file)[0]}_r{i}_x{x}_y{y}_w{w}_h{h}.tiff'
             save_img(container_np, os.path.join(output_container, container_name))
 
-            # paste container over sensitive region
-            container_resized = cv2.resize(container_np, (w, h), interpolation=cv2.INTER_LANCZOS4)
-            redacted[y:y+h, x:x+w] = container_resized
+            # cover sensitive region with blur
+            region_blurred = cv2.GaussianBlur(crop, (51, 51), 0)
+            redacted[y:y + h, x:x + w] = region_blurred
 
             region_meta.append({
                 "region_idx": i,
                 "x": x, "y": y, "w": w, "h": h,
-                "host_file": host_file
+                "host_file": host_file,
+                "container_name": container_name
             })
 
             print(f'Embeded region {i} using host {host_file}')
@@ -206,8 +207,10 @@ def recover_from_image(img, key, pris_model, device):
         for r in regions:
             x, y, w, h = r["x"], r["y"], r["w"], r["h"]
 
-            container_patch = img[y:y+h, x:x+w]
-            container = crop_to_tensor(container_patch).to(device)
+            container_path = os.path.join(output_container, r["container_name"])
+            container_img = cv2.imread(container_path)
+            container_rgb = cv2.cvtColor(container_img, cv2.COLOR_BGR2RGB)
+            container = crop_to_tensor(container_rgb).to(device)
 
             secret = pris_model.extract(container)
             secret_np = tensor_to_numpy(secret)
