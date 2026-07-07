@@ -1,0 +1,75 @@
+<div id="image-page-container">
+    <div class="page-title">
+        <h2>{{ image?.name }}</h2>
+        <p>View and decrypt your image</p>
+    </div>
+
+    <div class="content">
+        <div class="img-preview">
+            <img [src]="encryptedUrl || 'assets/image_placeholder.jpg'" alt="Encrypted image">
+            <div class="img-overlay">
+                <span class="material-symbols-outlined">lock</span>
+                <p>Encrypted</p>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-section">
+                <h2>Image Info</h2>
+
+                <div class="info-row">
+                    <span class="material-symbols-outlined">calendar_today</span>
+                    <div>
+                        <p class="label">Uploaded</p>
+                        <p class="value">{{ image?.uploaded_at | date:'dd MMM yyyy' }}</p>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <span class="material-symbols-outlined">storage</span>
+                    <div>
+                        <p class="label">Size</p>
+                        <p class="value">{{ image?.file_size / 1024 / 1024 | number:'1.0-2' }} MB</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="decrypt-section">
+                <h2>Decrypt Image</h2>
+                <p class="hint">Enter your recovery key to decrypt and download the original image.</p>
+
+                <div class="input-group">
+                    <input
+                        type="text"
+                        [(ngModel)]="recoveryKey"
+                        placeholder="Paste recovery key..."
+                        [disabled]="isDecrypting || !!decryptedUrl"
+                    />
+                </div>
+
+                @if (!decryptedUrl) {
+                    <button class="decrypt-btn"
+                        (click)="decrypt()" 
+                        [disabled]="!recoveryKey.trim() || isDecrypting">
+                        <span class="material-symbols-outlined">lock_open</span>
+                        {{ isDecrypting ? 'Decrypting...' : 'Decrypt' }}
+                    </button>
+                }
+                
+
+                @if (decryptedUrl) {
+                    <div class="success">
+                        <span class="material-symbols-outlined">check_circle</span>
+                        <p>Image decrypted successfully!</p>
+                    </div>
+                    
+                    <button class="download-btn"
+                        (click)="download()">
+                        <span class="material-symbols-outlined">download</span>
+                        Download Original
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>

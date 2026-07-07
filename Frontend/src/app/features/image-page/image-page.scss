@@ -1,0 +1,211 @@
+#image-page-container {
+    width: 100%;
+    height: calc(100vh - 60px);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+
+    background:
+        radial-gradient(circle at left center, 
+        rgba(var(--accent-color), 0.5), transparent 20%);
+
+    .page-title {
+        width: 80%;
+
+        h2 {
+            margin-bottom: 10px;
+            color: rgba(var(--text-color), 1);
+        }
+        p {
+            color: rgba(var(--text-color), 0.8);
+            margin: 0 0 20px 0;
+        }
+    }
+
+    .content {
+        width: 80%;
+        max-height: 70vh;
+        flex: 1;
+
+        display: flex;
+        flex-direction: row;
+        gap: 40px;
+
+        align-items: stretch;
+        margin-bottom: 20px;
+
+        .img-preview {
+            flex: 1;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            background: rgba(var(--accent-color), 0.1);
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .img-overlay {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+
+            display: flex;
+            align-items: center;
+
+            gap: 6px;
+            padding: 6px 12px;
+
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+
+            span { 
+                font-size: 1.2rem; 
+            }
+            p { 
+                margin: 0; 
+                font-size: 0.9rem; 
+            }
+        }
+    }
+
+        .info-panel {
+            width: 360px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+
+            .info-section, .decrypt-section {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+
+                padding: 24px;
+                border-radius: 16px;
+                
+                border: 2px solid rgba(var(--accent-color), 0.2);
+                background: rgba(var(--accent-color), 0.1);
+
+                h2 {
+                    margin: 0;
+                    color: rgba(var(--text-color), 1);
+                }
+            }
+
+            .info-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+
+                span {
+                    color: rgba(var(--accent-color), 1);
+                    font-size: 1.8rem;
+                }
+
+                .label {
+                    margin: 0;
+                    font-size: 0.9rem;
+                    color: rgba(var(--text-color), 0.7);
+                }
+
+                .value {
+                    margin: 0;
+                    color: rgba(var(--text-color), 1);
+                }
+            }
+
+            .hint {
+                margin: 0;
+                color: rgba(var(--text-color), 0.7);
+            }
+
+            .input-group input {
+                width: 100%;
+
+                padding: 10px 16px;
+
+                background: rgba(var(--background-color), 1);
+                color: rgba(var(--text-color), 1);
+
+                border: 2px solid rgba(var(--accent-color-dark), 1);
+                border-radius: 8px;
+                box-sizing: border-box;
+
+                &:focus {
+                    outline: none;
+                    border-color: rgba(var(--accent-color), 1);
+                }
+            }
+
+            .success {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: #19a14b;
+
+                span { font-size: 1.4rem; }
+                p { margin: 0; }
+            }
+
+            .decrypt-btn, .download-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                gap: 8px;
+                padding: 12px;
+                border-radius: 10px;
+
+                border: none;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: 0.2s ease;
+
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                    transform: none;
+                }
+            }
+
+            .decrypt-btn {
+                background: rgba(var(--accent-color), 1);
+                color: white;
+
+                &:hover:not(:disabled) {
+                    background: rgba(var(--accent-color-dark), 1);
+                    transform: none;
+                }
+            }
+
+            .download-btn {
+                background: #19a14b;
+                color: white;
+
+                &:hover {
+                    background: #139141;
+                }
+            }
+        }
+    }
+
+    @media screen and (max-width: 800px) {
+        .content {
+            flex-direction: column;
+
+            .img-preview {
+                flex: none;
+            }
+
+            .info-panel { 
+                width: 100%; 
+            }
+        }
+    }
+}
