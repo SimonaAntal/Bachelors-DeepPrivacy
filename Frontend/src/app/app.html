@@ -1,0 +1,27 @@
+<header>
+  <img id="logo" src="assets/logo.png" alt="Logo" routerLink="/">
+  <div class="nav-links">
+    <div class="appearance-toggle" [class.light]="isLightMode" (click)="setTheme(!isLightMode)">
+      <span class="material-symbols-outlined">dark_mode</span>
+      <span class="material-symbols-outlined">light_mode</span>
+    </div>
+    <a routerLink="/home" routerLinkActive="active">HOME</a>
+
+    @if (authService.isLoggedIn()) {
+      <a routerLink="/vault" routerLinkActive="active">VAULT</a>
+      <button class="signin-btn" (click)="logout()">Logout</button>
+    }
+    @else {
+      <button class="signin-btn" routerLink="/sign-in">Sign In</button>
+    }
+  </div>
+
+</header>
+  
+<main>
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="footer">
+  <p>DeepPrivacy &copy; 2026</p>
+</footer>

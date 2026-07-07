@@ -1,0 +1,147 @@
+@use '@angular/material' as mat;
+
+:root{
+    --light-text-color: 0, 0, 0;
+    --dark-text-color: 255, 255, 255;
+
+    --light-background-color: 222, 220, 233;
+    --dark-background-color: 18, 18, 18;
+
+    --accent-color: 92, 14, 255;
+    --accent-color-dark: 38, 6, 117;
+
+    --scrollbar-color: 100, 100, 100;
+    --header-color: 18, 18, 18;
+
+    //dark mode default
+    --text-color: var(--dark-text-color);
+    --background-color: var(--dark-background-color);
+}
+
+.light-theme{
+    --text-color: var(--light-text-color);
+    --background-color: var(--light-background-color);
+}
+
+html, body{
+  margin: 0;
+  padding: 0;
+}
+
+html{
+    scrollbar-color: rgb(var(--scrollbar-color)) rgb(var(--header-color));
+
+    @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+
+    @include mat.form-field-overrides((
+    container-text-font: Roboto,
+    outlined-outline-width: 2px,
+
+    outlined-input-text-color: rgb(var(--text-color)),
+    outlined-label-text-color: rgb(var(--text-color)),
+    outlined-outline-color: rgb(var(--text-color)),
+    outlined-caret-color: rgb(var(--accent-color)),
+
+    outlined-hover-outline-color: rgb(var(--text-color)),
+    outlined-hover-label-text-color: rgb(var(--text-color)),
+
+    outlined-focus-outline-color: rgb(var(--accent-color)),
+    outlined-focus-label-text-color: rgb(var(--accent-color)),
+
+  ));
+}
+
+body{
+    font-family: 'Roboto', 'Open Sans', 'Poppins', sans-serif;
+    background-color: rgba(var(--background-color), 1);
+
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+}
+
+/* ----------------- Text ----------------- */
+h1{
+    font-size: 4rem;
+    font-weight: 500;
+}
+
+h2{
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+p{
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+a{
+    text-decoration: none;
+    transition: 0.1s ease-in-out;
+    cursor: pointer;
+}
+
+button{
+    font-family: 'Roboto', 'Open Sans', 'Poppins', sans-serif;
+    font-size: 1rem;
+
+    padding: 10px 30px;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    background: linear-gradient(135deg, 
+        rgba(var(--accent-color-dark), 1) 0%, 
+        rgba(var(--accent-color), 1) 100%);
+
+    transition: 0.1s ease-in-out;
+    cursor: pointer;
+
+    &:hover{
+        transform: scale(1.05);
+    }
+
+    &.outline-btn{
+        background: transparent;
+        border: 2px solid rgba(var(--text-color), 1);
+        color: rgba(var(--text-color), 1);
+
+        &:hover, &.active{
+            background: rgba(var(--accent-color), 0.3);
+            border: 2px solid rgba(var(--accent-color), 1);
+        }
+    }
+
+    &.disabled{
+        display: none;
+    }
+}
+
+input{
+    font-family: 'Roboto', 'Open Sans', 'Poppins', sans-serif;
+    font-size: 1rem;
+
+    transition: 0.1s ease-in-out;
+}
+
+@media screen and (max-width: 850px) {
+    h1{
+        font-size: 2.5rem;
+    }
+
+    h2{
+        font-size: 1.5rem;
+    }
+
+    p{
+        font-size: 1rem;
+    }
+  
+}
