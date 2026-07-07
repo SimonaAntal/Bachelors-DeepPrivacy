@@ -1,0 +1,109 @@
+<div id="vault-page-container">
+    <div class="page-title">
+        <h2>User's Vault</h2>
+        <p>Securely store and manage your images</p>
+    </div>
+
+    <div class="filters-container">
+        <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" placeholder="Search image by title..." id="imageTitle"
+                [value]="searchTitle"
+                (input)="onSearch($any($event.target).value)">
+        </div>
+    </div>
+
+    <div class="img-container">
+        <div class="add-img"
+            [class.drag-over]="isDragOver"
+            (click)="fileInput.click()"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave()"
+            (drop)="onDrop($event)">
+
+            <div class="upload-container">
+                <span class="material-symbols-outlined">add</span>
+                <p>Upload new image</p>
+                <p class="format">PNG, JPG up to 10MB</p>
+
+                <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/png, image/jpeg" style="display: none;">
+            </div>
+        </div>
+        
+        @for (img of images; track img.image_id) {
+            <div class="img-item">
+                <div class="img-placeholder">
+                    <img [src]="img.url || 'assets/image_placeholder.jpg'" alt="image"
+                        (click)="openImage(img)">
+                </div>
+                <div class="img-info">
+                    <div class="img-title">
+                        <p (click)="openImage(img)">{{ img.name }}</p>
+                        <div class="img-meta">
+                        <p>{{ img.uploaded_at | date:'dd MMM yyyy' }}</p>
+                        <p>{{ img.file_size / 1024 / 1024 | number:'1.0-2' }} MB</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined">more_vert</span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="pagination-container">
+        <button class="page-btn outline-btn" 
+            (click)="changePage(page-1)"
+            [disabled]="page === 1">&laquo;
+        </button>
+        
+        @for (p of pages; track p) {
+            <button class="page-btn outline-btn"
+             [class.active]="p === page" 
+             (click)="changePage(p)">
+                {{p}}
+            </button>
+        }
+
+        <button class="page-btn outline-btn" 
+            (click)="changePage(page+1)"
+            [disabled]="page*size>=total">&raquo;
+        </button>
+    </div>
+</div>
+
+@if (pendingFile) {
+    <div class="modal-overlay" (click)="closeUploadModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+            <h2>Upload Image</h2>
+
+            <div class="preview">
+                <span class="material-symbols-outlined">image</span>
+                <p>{{ pendingFile.name }}</p>
+                <p class="file-size">{{ pendingFile.size / 1024 / 1024 | number:'1.0-2' }} MB</p>
+            </div>
+
+            <div class="input-group">
+                <label>Image Title</label>
+                <input type="text" placeholder="Enter an image title..." required
+                    [(ngModel)]="imageTitle"
+                    [disabled]="isUploading"
+                />
+            </div>
+
+            <div class="modal-actions">
+                <button class="cancel-btn outline-btn"
+                    (click)="closeUploadModal()"
+                    [disabled]="isUploading">
+                    Cancel
+                </button>
+
+                <button class="encrypt-btn" 
+                    (click)="uploadImage()"
+                    [disabled]="!imageTitle.trim() || isUploading">
+                    <span class="material-symbols-outlined">lock</span>
+                    {{ isUploading ? 'Encrypting...' : 'Encrypt & Upload' }}
+                </button>
+            </div>
+        </div>
+    </div>
+}

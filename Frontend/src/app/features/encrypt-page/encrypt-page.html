@@ -1,0 +1,61 @@
+<div id="encrypt-page-container">
+
+    <div class="page-title">
+        <h2>Encryption Result</h2>
+        <p>Your image has been encrypted and stored securely</p>
+    </div>
+
+    <div class="top-button">
+        <button class="vault-btn" (click)="goToVault()"> 
+            Go to Vault
+        </button>
+    </div>
+
+
+    <div class="img-container">
+
+        <div class="comparison-slider">
+            <img class="image-original"
+                [src]="originalImage"
+                alt="Original Image">
+
+            <div class="image-encrypted-wrapper"
+                [style.width.%]="sliderValue">
+                <img
+                    class="image-encrypted"
+                    [src]="encryptedImage"
+                    alt="Encrypted Image">
+            </div>
+
+            <div class="slider-line" [style.left.%]="sliderValue">
+                <div class="slider-handle">
+                    <span class="material-symbols-outlined">
+                        drag_indicator
+                    </span>
+                </div>
+            </div>
+
+            <input type="range" min="0" max="100" [(ngModel)]="sliderValue">
+        </div>
+
+        <div class="labels">
+            <p>Encrypted</p>
+            <p>Original</p>
+        </div>
+    </div>
+
+    <div class="key-container">
+    <span class="material-symbols-outlined warning-icon">warning</span>
+    <p class="warning-text">Save your recovery key! It cannot be recovered if lost.</p>
+
+    <div class="key-box">
+      <code>{{ recoveryKey }}</code>
+      <button (click)="copyKey()">
+        <span class="material-symbols-outlined">
+            {{ keyCopied ? 'check' : 'content_copy' }}
+        </span>
+            {{ keyCopied ? 'Copied!' : 'Copy' }}
+      </button>
+    </div>
+  </div>
+</div>
