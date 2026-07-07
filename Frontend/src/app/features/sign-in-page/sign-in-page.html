@@ -1,0 +1,24 @@
+<div id="sign-in-page-container">
+    <div class="sign-in-container">
+        <div class="sign-in-logo">
+            <img id="sign-in-img" src="assets/logo.png" alt="Logo">
+            <h2>Welcome back!</h2>
+            <p>Please enter your details to continue.</p>
+            <p>Don't have an account?</p>
+            <button class="outline-btn sign-up-btn" routerLink="/sign-up">Sign Up</button>
+        </div>
+        <form [formGroup]="signInForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline" class="full-width-input">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width-input">
+                <mat-label>Password</mat-label>
+                <input matInput type="password" formControlName="password" required>
+            </mat-form-field>
+
+            <button class="outline-btn" type="submit">Sign In</button>
+      </form>
+    </div>
+</div>
