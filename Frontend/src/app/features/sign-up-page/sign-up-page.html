@@ -1,0 +1,52 @@
+<div id="sign-up-page-container">
+    <div class="sign-up-container">
+        <div class="sign-up-logo">
+            <img id="sign-up-img" src="assets/logo.png" alt="Logo">
+            <h2>Get started</h2>
+            <p>Already have an account?</p>
+            <button class="outline-btn sign-in-btn" routerLink="/sign-in">Sign In</button>
+        </div>
+        <form [formGroup]="signUpForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline" class="full-width-input">
+                <mat-label>Username</mat-label>
+                <input matInput type="text" formControlName="username" required>
+                <mat-error>{{ getError('username') }}</mat-error>
+            </mat-form-field>
+
+            <div class="one-row">
+                <mat-form-field appearance="outline" class="full-width-input">
+                    <mat-label>First Name</mat-label>
+                    <input matInput type="text" formControlName="firstName" required>
+                    <mat-error>{{ getError('firstName') }}</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width-input">
+                    <mat-label>Last Name</mat-label>
+                    <input matInput type="text" formControlName="lastName" required>
+                    <mat-error>{{ getError('lastName') }}</mat-error>
+                </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width-input">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email" required>
+                <mat-error>{{ getError('email') }}</mat-error>
+            </mat-form-field>
+
+            <div class="one-row">
+                <mat-form-field appearance="outline" class="full-width-input">
+                    <mat-label>Password</mat-label>
+                    <input matInput type="password" formControlName="password" required>
+                    <mat-error>{{ getError('password') }}</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width-input">
+                    <mat-label>Confirm Password</mat-label>
+                    <input matInput type="password" formControlName="confirmPassword" required>
+                    <mat-error>{{ getConfirmPasswordError() }}</mat-error>
+                </mat-form-field>
+            </div>
+            <button class="outline-btn" type="submit">Sign Up</button>
+      </form>
+    </div>
+</div>
