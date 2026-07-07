@@ -134,6 +134,10 @@ export class VaultPage {
     this.imageTitle = '';
   }
 
+  isValidImageTitle(): boolean {
+    return /^[A-Za-z0-9 _.-]{3,50}$/.test(this.imageTitle);
+  }
+
   uploadImage() {
     if (!this.pendingFile || !this.imageTitle.trim()) 
       return;

@@ -24,6 +24,8 @@ export class ImagePage {
   recoveryKey: string = '';
   isDecrypting = false;
 
+  showDeleteModal = false;
+
   constructor(private router: Router, private toastr: ToastrService) {}
 
   ngOnInit() {
@@ -39,6 +41,16 @@ export class ImagePage {
         this.encryptedUrl = URL.createObjectURL(blob);
       }
     });
+  }
+
+  isValidKeyFormat(): boolean {
+    return /^[A-Za-z0-9+/]+={0,2}$/.test(this.recoveryKey)
+        && this.recoveryKey.length >= 40
+        && this.recoveryKey.length <= 100;
+  }
+
+  confirmDelete() {
+      this.showDeleteModal = true;
   }
 
   decrypt() {
@@ -68,5 +80,25 @@ export class ImagePage {
     a.href = this.decryptedUrl;
     a.download = this.image.name + '.png';
     a.click();
+  }
+
+  deleteImage() {
+    this.vaultService.deleteImage(
+        this.image.image_id,
+        this.recoveryKey
+    ).subscribe({
+
+        next: () => {
+            this.toastr.success("Image deleted successfully.");
+            this.router.navigate(['/vault']);
+        },
+
+        error: err => {
+            this.toastr.error(err.error?.detail ?? "Delete failed");
+        }
+
+    });
+
+    this.showDeleteModal = false;
   }
 }

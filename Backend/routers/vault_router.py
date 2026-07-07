@@ -1,3 +1,5 @@
+import base64
+import binascii
 from io import BytesIO
 from typing import Annotated
 
@@ -41,9 +43,9 @@ async def upload_image(
 async def recover_image(
         image_id: str,
         key: Annotated[str, Form(
-            min_length=64,
-            max_length=64,
-            pattern=r"^[0-9a-fA-F]{64}$")],
+            min_length=40,
+            max_length=100,
+            pattern=r"^[A-Za-z0-9+/]+={0,2}$")],
         current_user=Depends(get_current_user),
         db=Depends(get_db)
 ):
@@ -56,6 +58,13 @@ async def recover_image(
     if not ObjectId.is_valid(image_id):
         raise HTTPException(422, "Invalid image id")
 
+    try:
+        key_decoded = base64.b64decode(key, validate=True)
+        if len(key_decoded) != 32:
+            raise ValueError("Invalid key length")
+    except (binascii.Error, ValueError):
+        raise HTTPException(422, "Invalid recovery key")
+
     recovered_buffer = await decrypt_image(db, owner_id, image_id, key)
 
     return StreamingResponse(
@@ -67,9 +76,9 @@ async def recover_image(
 async def delete_image(
         image_id: str,
         key: Annotated[str, Form(
-            min_length=64,
-            max_length=64,
-            pattern=r"^[0-9a-fA-F]{64}$")],
+            min_length=40,
+            max_length=100,
+            pattern=r"^[A-Za-z0-9+/]+={0,2}$")],
         current_user=Depends(get_current_user),
         db=Depends(get_db)
 ):
@@ -81,6 +90,13 @@ async def delete_image(
 
     if not ObjectId.is_valid(image_id):
         raise HTTPException(422, "Invalid image id")
+
+    try:
+        key_decoded = base64.b64decode(key, validate=True)
+        if len(key_decoded) != 32:
+            raise ValueError("Invalid key length")
+    except (binascii.Error, ValueError):
+        raise HTTPException(422, "Invalid recovery key")
 
     return await remove_image(db, owner_id, image_id, key)
 

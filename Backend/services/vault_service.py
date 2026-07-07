@@ -90,7 +90,6 @@ async def decrypt_image(db, owner_id, image_id, key):
 
     try:
         recovered = encryption_service.decrypt_image(image["file_path"], base64.b64decode(key))
-
     except FileNotFoundError:
         raise HTTPException(404, "Image file missing")
     except DecryptionException:

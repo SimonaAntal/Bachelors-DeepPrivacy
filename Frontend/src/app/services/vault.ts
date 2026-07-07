@@ -57,4 +57,17 @@ export class VaultService {
       { withCredentials: true, responseType: 'blob' }
     );
   }
+
+  deleteImage(imageId: string, key: string) {
+    const formData = new FormData();
+    formData.append('key', key);
+
+    return this.http.delete<any>(
+      `${this.API_URL}/vault/images/${imageId}`,
+      {
+        body: formData,
+        withCredentials: true
+      }
+    );
+  }
 }

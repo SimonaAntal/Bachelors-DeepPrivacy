@@ -12,6 +12,10 @@
         radial-gradient(circle at left center, 
         rgba(var(--accent-color), 0.5), transparent 20%);
 
+    @media screen and (max-width: 1600px) {
+        height: auto;
+    }
+
     .page-title{
         width: 80%;
         justify-content: flex-start;

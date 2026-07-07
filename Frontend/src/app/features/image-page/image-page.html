@@ -6,7 +6,7 @@
 
     <div class="content">
         <div class="img-preview">
-            <img [src]="encryptedUrl || 'assets/image_placeholder.jpg'" alt="Encrypted image">
+            <img [src]="encryptedUrl || 'assets/img_placeholder.jpg'" alt="Encrypted image">
             <div class="img-overlay">
                 <span class="material-symbols-outlined">lock</span>
                 <p>Encrypted</p>
@@ -47,10 +47,16 @@
                     />
                 </div>
 
+                @if (recoveryKey && !isValidKeyFormat()) {
+                    <small class="error">
+                        Not a valid recovery key format
+                    </small>
+                }
+
                 @if (!decryptedUrl) {
                     <button class="decrypt-btn"
                         (click)="decrypt()" 
-                        [disabled]="!recoveryKey.trim() || isDecrypting">
+                        [disabled]="!recoveryKey.trim() || isDecrypting || !isValidKeyFormat()">
                         <span class="material-symbols-outlined">lock_open</span>
                         {{ isDecrypting ? 'Decrypting...' : 'Decrypt' }}
                     </button>
@@ -69,7 +75,47 @@
                         Download Original
                     </button>
                 }
+
+                <button class="delete-btn"
+                    (click)="confirmDelete()"
+                    [disabled]="!recoveryKey.trim() || !isValidKeyFormat()">
+                    Delete Image
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+@if (showDeleteModal) {
+    <div class="modal-overlay" (click)="showDeleteModal = false">
+        <div class="modal" (click)="$event.stopPropagation()">
+
+            <span class="material-symbols-outlined warning">
+                warning
+            </span>
+
+            <h2>Delete image?</h2>
+
+            <p>
+                This action is permanent.
+                The encrypted image and all hidden containers will be removed.
+                You will not be able to recover the image afterwards.
+            </p>
+
+            <div class="modal-actions">
+
+                <button class="outline-btn cancel-delete-btn"
+                        (click)="showDeleteModal = false">
+                    Cancel
+                </button>
+
+                <button class="confirm-delete-btn"
+                        (click)="deleteImage()">
+                    Delete permanently
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+}

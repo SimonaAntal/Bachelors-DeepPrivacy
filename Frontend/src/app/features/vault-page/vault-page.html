@@ -33,7 +33,7 @@
         @for (img of images; track img.image_id) {
             <div class="img-item">
                 <div class="img-placeholder">
-                    <img [src]="img.url || 'assets/image_placeholder.jpg'" alt="image"
+                    <img [src]="img.url || 'assets/img_placeholder.jpg'" alt="image"
                         (click)="openImage(img)">
                 </div>
                 <div class="img-info">
@@ -85,10 +85,17 @@
             <div class="input-group">
                 <label>Image Title</label>
                 <input type="text" placeholder="Enter an image title..." required
+                    maxlength="50"
                     [(ngModel)]="imageTitle"
                     [disabled]="isUploading"
                 />
             </div>
+
+            @if (imageTitle && !isValidImageTitle()) {
+                <small class="error">
+                    Title must be 3–50 characters and contain only letters, numbers, spaces, ".", "-" and "_".
+                </small>
+            }
 
             <div class="modal-actions">
                 <button class="cancel-btn outline-btn"
@@ -99,7 +106,7 @@
 
                 <button class="encrypt-btn" 
                     (click)="uploadImage()"
-                    [disabled]="!imageTitle.trim() || isUploading">
+                    [disabled]="!imageTitle.trim() || isUploading || !isValidImageTitle()">
                     <span class="material-symbols-outlined">lock</span>
                     {{ isUploading ? 'Encrypting...' : 'Encrypt & Upload' }}
                 </button>
